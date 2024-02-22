@@ -10,14 +10,14 @@ public class Main {
 
         Assembler.builder()
             .setSourceFilePath(path)
-            .setParserOutputFile(path.substring(0, path.lastIndexOf("/")) + "/lexer.txt")
+            .setParserOutputFile(path.substring(0, path.lastIndexOf("/") == -1 ? 0 : path.lastIndexOf("/")) + "/lexer.txt")
             .setFirstRunCompilerListing(path.replace(".asm", "") + ".lst")
             .setSecondRunCompilerListing(path.replace(".asm", "") + ".lst")
             .build()
             .compile();
 
         //System.out.println(UtilTables.identifiersTable);
-        //System.out.println(UtilTables.equReplacements);
+        System.out.println(UtilTables.equReplacements);
         //System.out.println(UtilTables.immPool);
     }
 }
