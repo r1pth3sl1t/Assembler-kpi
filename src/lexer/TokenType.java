@@ -9,6 +9,7 @@ public enum TokenType {
     T_EQU_SUB,
 
     T_GENERAL_REG08,
+    T_BANNED_REG,
     T_GENERAL_REG32,
 
     T_SEGMENT_REG,
