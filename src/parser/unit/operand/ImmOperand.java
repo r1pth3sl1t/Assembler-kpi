@@ -13,11 +13,6 @@ public class ImmOperand extends Operand{
 
     private int immValue;
 
-    public ImmOperand(Token token) {
-        super(token);
-
-    }
-
     public int getImmValue() {
         return immValue;
     }
@@ -28,11 +23,11 @@ public class ImmOperand extends Operand{
 
     public ImmOperand(List<Token> absoluteExpression) throws ParserException {
         super();
-        String tmp = "";
+        StringBuilder tmp = new StringBuilder();
         for(Token token : absoluteExpression) {
-            tmp += token.getContent();
+            tmp.append(token.getContent());
         }
-        this.name = tmp;
+        this.name = tmp.toString();
         this.immValue = parseAbsoluteExpression(absoluteExpression);
         this.size = getIntegerSize(immValue);
     }
@@ -49,7 +44,7 @@ public class ImmOperand extends Operand{
             for (Token token : absoluteExpression) {
                 switch (token.getType()) {
                     case T_HEX, T_DEC, T_BIN -> operands.push(UtilTables.immPool.get(token.getContent()));
-                    case T_PLUS, T_MINUS, T_STAR -> {
+                    case T_PLUS, T_MINUS, T_STAR, T_SLASH -> {
                         if (operators.isEmpty() || getPriority(operators.peek()) < getPriority(token.getType())) {
                             operators.push(token.getType());
                         } else {
@@ -63,14 +58,19 @@ public class ImmOperand extends Operand{
                         while (!operators.isEmpty() && operators.peek() != TokenType.T_OPEN_PARENTHESIS) {
                             popOperators(operands, operators);
                         }
-                        if (!operators.isEmpty()) operators.pop();
+                        if(operators.isEmpty() || operators.peek() != TokenType.T_OPEN_PARENTHESIS)
+                            throw new ParserException("Missing parenthesis");
+                        operators.pop();
                     }
+                    default -> throw new ParserException("This token is not allowed in absolute expression: '" + token.getContent() + "'");
                 }
             }
             while (!operators.isEmpty()) {
                 popOperators(operands, operators);
             }
-            return operands.pop();
+            int res = operands.pop();
+            if(!operands.isEmpty() || !operators.isEmpty()) throw new ParserException("Invalid absolute expression");
+            return res;
         } catch(EmptyStackException e) {
             throw new ParserException("Invalid absolute expression");
         }
@@ -101,7 +101,7 @@ public class ImmOperand extends Operand{
         return switch (tokenType) {
             case T_OPEN_PARENTHESIS -> 0;
             case T_PLUS, T_MINUS -> 1;
-            case T_STAR -> 2;
+            case T_STAR, T_SLASH -> 2;
             default -> -1;
         };
     }
