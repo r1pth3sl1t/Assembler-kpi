@@ -28,6 +28,17 @@ public class Lexer {
         keywords.put("DL", TokenType.T_GENERAL_REG08);
         keywords.put("DH", TokenType.T_GENERAL_REG08);
 
+        keywords.put("AX", TokenType.T_BANNED_REG);
+        keywords.put("BX", TokenType.T_BANNED_REG);
+        keywords.put("CX", TokenType.T_BANNED_REG);
+        keywords.put("DX", TokenType.T_BANNED_REG);
+        keywords.put("SI", TokenType.T_BANNED_REG);
+        keywords.put("DI", TokenType.T_BANNED_REG);
+        keywords.put("SP", TokenType.T_BANNED_REG);
+        keywords.put("BP", TokenType.T_BANNED_REG);
+        keywords.put("IP", TokenType.T_BANNED_REG);
+        keywords.put("EIP", TokenType.T_BANNED_REG);
+
         keywords.put("EAX", TokenType.T_GENERAL_REG32);
         keywords.put("EBX", TokenType.T_GENERAL_REG32);
         keywords.put("ECX", TokenType.T_GENERAL_REG32);
@@ -65,7 +76,6 @@ public class Lexer {
         keywords.put("BYTE", TokenType.T_TYPE);
         keywords.put("WORD", TokenType.T_TYPE);
         keywords.put("DWORD", TokenType.T_TYPE);
-        keywords.put("FAR", TokenType.T_TYPE);
 
         keywords.put("PTR", TokenType.T_PTR);
     }
@@ -127,7 +137,7 @@ public class Lexer {
                     }
                     if(!tokensInLine.isEmpty() && tokensInLine.get(tokensInLine.size() - 1).getContent().equals("EQU")) {
                         currentChar = this.getNextChar();
-                        while(currentChar != '\0') {
+                        while(currentChar != '\0' && currentChar != ';') {
                             tokenContent.append(currentChar);
                             currentChar = this.getNextChar();
                         }
@@ -217,8 +227,8 @@ public class Lexer {
             return this.parseImmValue(tokenContent);
         }
         for(char c : tokenContent.toCharArray()) {
-            if(!Character.isDigit(c) && !Character.isAlphabetic(c))
-                throw new LexerException(currentLineIndex, "Unresolved symbol '" + c + "' in identifier token [" + tokenContent + "]");
+            if(!Character.isDigit(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
+                throw new LexerException(currentLineIndex, "Unresolved symbol '" + c + "' in identifier token '" + tokenContent + "'");
         }
         if(tokenContent.length() > 5) throw new LexerException(currentLineIndex, "Identifier '" + tokenContent +"' is too large");
         return new Token(tokenContent, TokenType.T_IDENTIFIER);
