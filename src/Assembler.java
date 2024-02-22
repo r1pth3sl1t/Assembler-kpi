@@ -1,3 +1,5 @@
+
+
 import lexer.Lexer;
 import lexer.LexerException;
 import lexer.Token;
@@ -33,7 +35,8 @@ public class Assembler {
             this.lines = new LinkedList<>();
             while((line = reader.readLine()) != null) lines.add(line);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("Source file not found");
+            System.exit(1);
         }
         this.lexer = new Lexer();
         this.parser = new Parser();
