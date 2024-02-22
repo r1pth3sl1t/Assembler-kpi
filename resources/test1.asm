@@ -16,7 +16,7 @@ vv db 2h
 ddw dd 17124612
 
 start: 
-		and [edx + esi + 7], eax
+		and byte ptr cs: [edx + esi + 7], eax
 		neg dwVr
 		jb sml
 		and dfnd, ebp

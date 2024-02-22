@@ -113,19 +113,23 @@
 
 <label (1,2)> 
 
-19) and [edx + esi + 7], eax
-	01) AND - T_INSTRUCTION
-	02)   [ - T_OPEN_BRACKET
-	03) EDX - T_GENERAL_REG32
-	04)   + - T_PLUS
-	05) ESI - T_GENERAL_REG32
-	06)   + - T_PLUS
-	07)   7 - T_DEC
-	08)   ] - T_CLOSE_BRACKET
-	09)   , - T_COMMA
-	10) EAX - T_GENERAL_REG32
+19) and byte ptr cs: [edx + esi + 7], eax
+	01)  AND - T_INSTRUCTION
+	02) BYTE - T_TYPE
+	03)  PTR - T_PTR
+	04)   CS - T_SEGMENT_REG
+	05)    : - T_COLON
+	06)    [ - T_OPEN_BRACKET
+	07)  EDX - T_GENERAL_REG32
+	08)    + - T_PLUS
+	09)  ESI - T_GENERAL_REG32
+	10)    + - T_PLUS
+	11)    7 - T_DEC
+	12)    ] - T_CLOSE_BRACKET
+	13)    , - T_COMMA
+	14)  EAX - T_GENERAL_REG32
 
-<mnem (1,1)> <op (2,7)>, <op (10,1)>
+<mnem (1,1)> <op (2,11)>, <op (14,1)>
 
 
 20) neg dwVr
