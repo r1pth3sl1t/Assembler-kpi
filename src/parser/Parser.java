@@ -35,7 +35,6 @@ public final class Parser {
                 identifier.setTokensNumber(2);
                 identifier.setType(UtilTables.IdentifierType.LABEL);
                 sentence.setIdentifier(identifier);
-                UtilTables.identifiersTable.put(identifier.getName(), identifier);
 
                 if(sentence.getTokenizedLine().getTokens().size() > 2) {
                     if(sentence.getTokenizedLine().getTokens().get(2).getType() == TokenType.T_INSTRUCTION) {
@@ -92,9 +91,6 @@ public final class Parser {
                 this.processEquDirective(sentence, index);
             }
             case "SEGMENT","ENDS" -> {
-                if(index == 0) {
-                    throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Segment should have name");
-                }
                 if(index != sentence.getTokenizedLine().getTokens().size() - 1) {
                     throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "End of line expected");
                 }
@@ -149,26 +145,28 @@ public final class Parser {
             case "DB" -> {
                 if(!onlyDB && operand.getSize() > 8) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
                 operand.setSize(8);
-                if(sentence.getIdentifier() != null) sentence.getIdentifier().setType(UtilTables.IdentifierType.BYTE);
+                if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
+                    sentence.getIdentifier().setType(UtilTables.IdentifierType.BYTE);
                 sentence.setOperands(List.of(operand));
             }
             case "DW"  -> {
                 if(onlyDB) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "String literals are allowed only for DB");
                 if(operand.getSize() > 16) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
                 operand.setSize(16);
-                if(sentence.getIdentifier() != null) sentence.getIdentifier().setType(UtilTables.IdentifierType.WORD);
+                if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
+                    sentence.getIdentifier().setType(UtilTables.IdentifierType.WORD);
                 sentence.setOperands(List.of(operand));
             }
             case "DD" -> {
                 if(onlyDB) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "String literals are allowed only for DB");
                 if(operand.getSize() > 32) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
                 operand.setSize(32);
-                if(sentence.getIdentifier() != null) sentence.getIdentifier().setType(UtilTables.IdentifierType.DWORD);
+                if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
+                    sentence.getIdentifier().setType(UtilTables.IdentifierType.DWORD);
                 sentence.setOperands(List.of(operand));
             }
             default -> throw new ParserException(sentence.getTokenizedLine().getLineNumber(),"Unexpected token");
         }
-        if(sentence.getIdentifier() != null) UtilTables.identifiersTable.put(sentence.getIdentifier().getName(), sentence.getIdentifier());
     }
 
     /*
@@ -183,12 +181,12 @@ public final class Parser {
             equOperand.setTokensNumber(1);
             equOperand.setFirstTokenIdx(index);
             sentence.setOperands(List.of(equOperand));
-            if(sentence.getIdentifier() != null) {
+            if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null) {
                 UtilTables.equReplacements.put(sentence.getIdentifier().getName(), equSub.getContent());
             }
         }
         else {
-            if(sentence.getIdentifier() != null) {
+            if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null) {
                 UtilTables.equReplacements.put(sentence.getIdentifier().getName(), "");
             }
         }
@@ -204,11 +202,13 @@ public final class Parser {
                 sentence.pushOperand(operand);
                 index++;
             }
+            case T_BANNED_REG ->
+                throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Banned register used");
             case T_OPEN_BRACKET, T_SEGMENT_REG, T_TYPE, T_IDENTIFIER ->
                     index = this.processMemoryReference(sentence, index);
             case T_OPEN_PARENTHESIS, T_HEX, T_BIN, T_DEC, T_MINUS ->
                 index = this.processImmOperand(sentence, index);
-            default -> throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Operand expected but " + tokens.get(index).getContent() + " found");
+            default -> throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Operand expected but '" + tokens.get(index).getContent() + "' found");
         }
         return index;
     }
@@ -268,7 +268,7 @@ public final class Parser {
         List<Token> tokens = sentence.getTokenizedLine().getTokens();
         MemReferenceOperand memReferenceOperand = new MemReferenceOperand();
         memReferenceOperand.setFirstTokenIdx(index);
-        String segmentOverride = "DS";
+        String segmentOverride = "";
         int size = 32;
         int sizeOfOperators = 0;
         boolean overridden = false;
@@ -307,7 +307,9 @@ public final class Parser {
             index++;
 
             if(tokens.get(index).getType() == TokenType.T_GENERAL_REG32) {
-                if(segmentOverride.isEmpty() && tokens.get(index).getContent().equals("EBP")) segmentOverride = "SS";
+                if(segmentOverride.isEmpty() &&
+                        (tokens.get(index).getContent().equals("EBP") || tokens.get(index).getContent().equals("ESP")))
+                    memReferenceOperand.setSegmentOverride("SS");
 
                 memReferenceOperand.setBase(sentence.getTokenizedLine().getTokens().get(index).getContent());
             }
@@ -347,10 +349,11 @@ public final class Parser {
 
         }
         else {
-            return this.processDirectAddressing(sentence, index, sizeOfOperators, segmentOverride, size);
+            index = this.processDirectAddressing(sentence, index, sizeOfOperators, segmentOverride, size);
+            return index;
         }
         memReferenceOperand.setSize(size);
-        memReferenceOperand.setSegmentOverride(segmentOverride);
+        if(!segmentOverride.isEmpty()) memReferenceOperand.setSegmentOverride(segmentOverride);
         memReferenceOperand.setName();
         memReferenceOperand.setTokensNumber(index - memReferenceOperand.getFirstTokenIdx() + 2);
         sentence.pushOperand(memReferenceOperand);
