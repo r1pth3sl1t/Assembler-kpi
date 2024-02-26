@@ -18,6 +18,8 @@ public class Sentence {
 
     private List<Operand> operands;
 
+    private ParserException exception = null;
+
 
     public Sentence(int lineIndex){
         this.operands = new LinkedList<>();
@@ -40,10 +42,14 @@ public class Sentence {
 
     @Override
     public String toString(){
-        if(this.tokenizedLine.getTokens().isEmpty()) return "<empty>\n";
+        if(this.tokenizedLine.getTokens().isEmpty()) return this.getTokenizedLine().toString() + "\n<empty>\n";
 
         StringBuilder result = new StringBuilder();
-
+        if(hasErrors()) {
+            System.err.println(getErrorMessages());
+            result.append(getErrorMessages()).append('\n');
+        }
+        result.append(this.tokenizedLine.toString());
         if(identifier != null) {
             result.append("<").append(identifier.getType() == UtilTables.IdentifierType.LABEL ? "label" : "name").append(" (").append(identifier.getFirstTokenIdx()).append(",").append(identifier.getTokensNumber()).append(")> ");
         }
@@ -53,7 +59,6 @@ public class Sentence {
                 result.append("<op (").append(operands.get(i).getFirstTokenIdx()).append(",").append(operands.get(i).getTokensNumber()).append(")>, ");
             }
             result.append("<op (").append(operands.get(operands.size() - 1).getFirstTokenIdx()).append(",").append(operands.get(operands.size() - 1).getTokensNumber()).append(")>");
-            result.append('\n');
         }
         return result.toString() + '\n';
     }
@@ -80,5 +85,29 @@ public class Sentence {
 
     public void setIdentifier(Identifier identifier) {
         this.identifier = identifier;
+    }
+
+    public ParserException getException() {
+        return exception;
+    }
+
+    public Sentence setException(ParserException exception) {
+        this.exception = exception;
+        return this;
+    }
+
+    public boolean hasErrors(){
+        return this.exception != null || this.tokenizedLine.getException() != null;
+    }
+
+
+    public String getErrorMessages(){
+        if(tokenizedLine.getException() != null) {
+            return tokenizedLine.getException().getMessage();
+        }
+        if(exception != null) {
+            return exception.getMessage();
+        }
+        return "";
     }
 }
