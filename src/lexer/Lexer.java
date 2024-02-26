@@ -92,88 +92,96 @@ public class Lexer {
         }
     }
 
-    public TokenizedLine tokenizeString(String line, int number) throws LexerException {
+    public TokenizedLine tokenizeString(String line, int number) {
         currentLine = line;
         currentLineIndex = number;
         List<Token> tokensInLine = new LinkedList<>();
         char currentChar = this.getNextChar();
-
-        StringBuilder tokenContent = new StringBuilder();
-        readLine:
-        while(currentChar != '\0') {
-            switch (currentChar) {
-                case ',', '+', '-', '*', '[', ']', '(', ')', '/' -> {
-                    tokenContent = processPreviousToken(tokenContent, tokensInLine);
-                    if(foundEqu) {
-                        foundEqu = false;
-                        break;
-                    }
-                    tokensInLine.add(new Token("" + currentChar, switch(currentChar) {
-                        case ',' -> TokenType.T_COMMA;
-                        case '+' -> TokenType.T_PLUS;
-                        case '-' -> TokenType.T_MINUS;
-                        case '*' -> TokenType.T_STAR;
-                        case '/' -> TokenType.T_SLASH;
-                        case '[' -> TokenType.T_OPEN_BRACKET;
-                        case ']' -> TokenType.T_CLOSE_BRACKET;
-                        case '(' -> TokenType.T_OPEN_PARENTHESIS;
-                        case ')' -> TokenType.T_CLOSE_PARENTHESIS;
-                        default -> throw new IllegalArgumentException();
-                    }));
-                }
-                case ':' -> {
-                    tokenContent = processPreviousToken(tokenContent, tokensInLine);
-                    if(foundEqu) {
-                        foundEqu = false;
-                        break;
-                    }
-                    tokensInLine.add(new Token(":", TokenType.T_COLON));
-                }
-                case ' ', '\t' -> {
-                    tokenContent = processPreviousToken(tokenContent, tokensInLine);
-                    if(foundEqu) {
-                        foundEqu = false;
-                        break;
-                    }
-                    if(!tokensInLine.isEmpty() && tokensInLine.get(tokensInLine.size() - 1).getContent().equals("EQU")) {
-                        currentChar = this.getNextChar();
-                        while(currentChar != '\0' && currentChar != ';') {
-                            tokenContent.append(currentChar);
-                            currentChar = this.getNextChar();
+        try {
+            StringBuilder tokenContent = new StringBuilder();
+            readLine:
+            while (currentChar != '\0') {
+                switch (currentChar) {
+                    case ',', '+', '-', '*', '[', ']', '(', ')', '/' -> {
+                        tokenContent = processPreviousToken(tokenContent, tokensInLine);
+                        if (foundEqu) {
+                            foundEqu = false;
+                            break;
                         }
-                        tokensInLine.add(new Token(tokenContent.toString(), TokenType.T_EQU_SUB));
-                        tokenContent = new StringBuilder();
+                        tokensInLine.add(new Token("" + currentChar, switch (currentChar) {
+                            case ',' -> TokenType.T_COMMA;
+                            case '+' -> TokenType.T_PLUS;
+                            case '-' -> TokenType.T_MINUS;
+                            case '*' -> TokenType.T_STAR;
+                            case '/' -> TokenType.T_SLASH;
+                            case '[' -> TokenType.T_OPEN_BRACKET;
+                            case ']' -> TokenType.T_CLOSE_BRACKET;
+                            case '(' -> TokenType.T_OPEN_PARENTHESIS;
+                            case ')' -> TokenType.T_CLOSE_PARENTHESIS;
+                            default -> throw new IllegalArgumentException();
+                        }));
+                    }
+                    case ':' -> {
+                        tokenContent = processPreviousToken(tokenContent, tokensInLine);
+                        if (foundEqu) {
+                            foundEqu = false;
+                            break;
+                        }
+                        tokensInLine.add(new Token(":", TokenType.T_COLON));
+                    }
+                    case ' ', '\t' -> {
+                        tokenContent = processPreviousToken(tokenContent, tokensInLine);
+                        if (foundEqu) {
+                            foundEqu = false;
+                            break;
+                        }
+                        if (!tokensInLine.isEmpty() && tokensInLine.get(tokensInLine.size() - 1).getContent().equals("EQU")) {
+                            currentChar = this.getNextChar();
+                            while (currentChar != '\0' && currentChar != ';') {
+                                tokenContent.append(currentChar);
+                                currentChar = this.getNextChar();
+                            }
+                            tokensInLine.add(new Token(tokenContent.toString(), TokenType.T_EQU_SUB));
+                            tokenContent = new StringBuilder();
+                            continue;
+                        }
+                    }
+                    case '\'', '\"' -> {
+                        tokenContent = processPreviousToken(tokenContent, tokensInLine);
+                        if (foundEqu) {
+                            foundEqu = false;
+                            break;
+                        }
+                        tokensInLine.add(this.tokenizeStringDeclaration(currentChar));
+                    }
+                    case ';' -> {
+                        break readLine;
+                    }
+                    default -> {
+                        tokenContent.append(currentChar);
+                    }
+                }
+                currentChar = this.getNextChar();
+                if (currentChar == '\0') {
+                    Token token = this.processComplexToken(tokenContent.toString());
+                    tokenContent = new StringBuilder();
+                    if (foundEqu) {
+                        currentChar = this.getNextChar();
+                        foundEqu = false;
                         continue;
                     }
-                }
-                case '\'', '\"' -> {
-                    tokenContent = processPreviousToken(tokenContent, tokensInLine);
-                    if(foundEqu) {
-                        foundEqu = false;
-                        break;
+                    if (token != null) {
+                        tokensInLine.add(token);
                     }
-                    tokensInLine.add(this.tokenizeStringDeclaration(currentChar));
-                }
-                case ';' -> {break readLine;}
-                default -> {
-                    tokenContent.append(currentChar);
                 }
             }
-            currentChar = this.getNextChar();
-            if(currentChar == '\0'){
-                Token token = this.processComplexToken(tokenContent.toString());
-                tokenContent = new StringBuilder();
-                if(foundEqu) {
-                    currentChar = this.getNextChar();
-                    foundEqu = false;
-                    continue;
-                }
-                if (token != null) {
-                    tokensInLine.add(token);
-                }
-            }
+            currentCharIndex = 0;
+        } catch (LexerException e) {
+            currentCharIndex = 0;
+            UtilTables.errors++;
+            return new TokenizedLine(tokensInLine, line, number).setException(e);
         }
-        currentCharIndex = 0;
+
         return new TokenizedLine(tokensInLine, line, number);
     }
 
@@ -235,7 +243,7 @@ public class Lexer {
     }
 
     private Token parseImmValue(String tokenContent) throws LexerException{
-        byte trim = 1;
+        int trim = 1;
         TokenType type = TokenType.T_DEC;
         int radix = switch (tokenContent.charAt(tokenContent.length() - 1)) {
             case 'B', 'b' -> {
@@ -253,7 +261,7 @@ public class Lexer {
             }
         };
         try {
-            int result = Integer.parseInt(tokenContent.substring(0, tokenContent.length() - trim), radix);
+            int result = Integer.parseUnsignedInt(tokenContent.substring(0, tokenContent.length() - trim), radix);
             UtilTables.immPool.put(tokenContent, result);
             return new Token(tokenContent, type);
 

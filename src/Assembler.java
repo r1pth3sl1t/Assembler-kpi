@@ -7,6 +7,7 @@ import lexer.TokenizedLine;
 import parser.Parser;
 import parser.ParserException;
 import parser.Sentence;
+import util.UtilTables;
 
 import java.io.*;
 import java.util.*;
@@ -43,30 +44,21 @@ public class Assembler {
     }
 
     public void compile(){
-        try {
-            int lineNum = 1;
-            for(String line : lines){
-                TokenizedLine tokenizedLine = lexer.tokenizeString(line, lineNum++);
-                tokenizedLines.add(tokenizedLine);
-                try {
-                    sentences.add(parser.parseLine(tokenizedLine));
-                } catch (ParserException e) {
-                    System.err.println(e.getMessage());
-                    return;
-                }
-            }
-        } catch (LexerException e) {
-            System.err.println(e.getMessage());
-            return;
+        int lineNum = 1;
+        int errorCnt = 0;
+        for(String line : lines){
+            TokenizedLine tokenizedLine = lexer.tokenizeString(line, lineNum++);
+            tokenizedLines.add(tokenizedLine);
+            sentences.add(parser.parseLine(tokenizedLine));
         }
 
         List<String> lexemesTable = tokenizedLines.stream().map(TokenizedLine::toString).toList();
         if(this.options.get("Parser") != null) {
             try (PrintWriter writer = new PrintWriter(new File(this.options.get("Parser")))) {
                 for (int i = 0; i < sentences.size(); i++ ) {
-                    writer.println(lexemesTable.get(i));
                     writer.println(sentences.get(i).toString());
                 }
+                System.out.println("Errors found: " + UtilTables.errors);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }

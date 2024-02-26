@@ -13,9 +13,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 /*
-*
-*
-*
+* <line>   -> <sid>
+* <line>   -> <sinstr>
+* <line>   -> <sdir>
+* <sid>    -> id: <sinstr> | <sdir>
+* <sid>    -> id <sdir>
+* <sinstr> -> <instr> {<op>..,}
+* <sdir>   -> <dir> {<op>}
+* <op>     -> <reg> | <mem> | <abs> | imm
+* <reg>    -> {reg8, reg32}
+* <mem>    -> [<cast> | <ovseg>] [id | [reg32 + reg32 + imm]]
+* <cast>   -> <type> ptr
+* <ovseg>  -> <segreg>:
 * */
 
 public final class Parser {
@@ -55,7 +64,7 @@ public final class Parser {
             }
             else throw  new ParserException(sentence.getTokenizedLine().getLineNumber(), "Directive expected");
         }
-        else throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Sentence must start of label, identifier or mnemonic");
+        else throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Sentence must start of label, identifier with mnemonic, or mnemonic");
         return sentence;
     }
 
@@ -94,12 +103,12 @@ public final class Parser {
                 if(index != sentence.getTokenizedLine().getTokens().size() - 1) {
                     throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "End of line expected");
                 }
-                else {
-                    Mnemonic mnemonic = new Mnemonic(sentence.getTokenizedLine().getTokens().get(index));
-                    mnemonic.setTokensNumber(1);
-                    mnemonic.setFirstTokenIdx(index);
-                    sentence.setMnemonic(mnemonic);
-                }
+                Mnemonic mnemonic = new Mnemonic(sentence.getTokenizedLine().getTokens().get(index));
+                mnemonic.setTokensNumber(1);
+                mnemonic.setFirstTokenIdx(index);
+                sentence.setMnemonic(mnemonic);
+                if(sentence.getIdentifier() != null) sentence.getIdentifier().setType(UtilTables.IdentifierType.SEGMENT);
+
             }
             default -> throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Couldn't process directive");
         }
@@ -122,15 +131,15 @@ public final class Parser {
             onlyDB = true;
         }
         else {
-            List<Token> tokens = new LinkedList<>();
             int startIndex = index;
+            boolean negative = false;
             if (sentence.getTokenizedLine().getTokens().get(index).getType() == TokenType.T_MINUS) {
-                tokens.add(sentence.getTokenizedLine().getTokens().get(index++));
+                negative = true;
+                index++;
             }
             switch (sentence.getTokenizedLine().getTokens().get(index).getType()) {
                 case T_BIN, T_DEC, T_HEX -> {
-                    tokens.add(sentence.getTokenizedLine().getTokens().get(index));
-                    operand = new ImmOperand(tokens);
+                    operand = new ImmOperand(UtilTables.immPool.get(sentence.getTokenizedLine().getTokens().get(index).getContent()), negative);
                     operand.setFirstTokenIdx(startIndex);
                     operand.setTokensNumber(index - startIndex + 1);
                 }
@@ -143,15 +152,15 @@ public final class Parser {
         }
         switch(sentence.getMnemonic().getName()) {
             case "DB" -> {
-                if(!onlyDB && operand.getSize() > 8) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
-                operand.setSize(8);
+                if(!onlyDB && operand.getSize() > 8) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size out of range");
+                if(!onlyDB) operand.setSize(8);
                 if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
                     sentence.getIdentifier().setType(UtilTables.IdentifierType.BYTE);
                 sentence.setOperands(List.of(operand));
             }
             case "DW"  -> {
                 if(onlyDB) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "String literals are allowed only for DB");
-                if(operand.getSize() > 16) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
+                if(operand.getSize() > 16) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size out of range");
                 operand.setSize(16);
                 if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
                     sentence.getIdentifier().setType(UtilTables.IdentifierType.WORD);
@@ -159,7 +168,7 @@ public final class Parser {
             }
             case "DD" -> {
                 if(onlyDB) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "String literals are allowed only for DB");
-                if(operand.getSize() > 32) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size is too big");
+                if(operand.getSize() > 32) throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Size out of range");
                 operand.setSize(32);
                 if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null)
                     sentence.getIdentifier().setType(UtilTables.IdentifierType.DWORD);
@@ -182,11 +191,13 @@ public final class Parser {
             equOperand.setFirstTokenIdx(index);
             sentence.setOperands(List.of(equOperand));
             if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null) {
+                sentence.getIdentifier().setType(UtilTables.IdentifierType.EQU);
                 UtilTables.equReplacements.put(sentence.getIdentifier().getName(), equSub.getContent());
             }
         }
         else {
             if(sentence.getIdentifier() != null && sentence.getIdentifier().getType() == null) {
+                sentence.getIdentifier().setType(UtilTables.IdentifierType.EQU);
                 UtilTables.equReplacements.put(sentence.getIdentifier().getName(), "");
             }
         }
@@ -206,7 +217,7 @@ public final class Parser {
                 throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Banned register used");
             case T_OPEN_BRACKET, T_SEGMENT_REG, T_TYPE, T_IDENTIFIER ->
                     index = this.processMemoryReference(sentence, index);
-            case T_OPEN_PARENTHESIS, T_HEX, T_BIN, T_DEC, T_MINUS ->
+            case T_HEX, T_BIN, T_DEC, T_MINUS, T_STRING ->
                 index = this.processImmOperand(sentence, index);
             default -> throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Operand expected but '" + tokens.get(index).getContent() + "' found");
         }
@@ -248,20 +259,42 @@ public final class Parser {
     }
 
     private int processImmOperand(Sentence sentence, int index) throws ParserException {
-        List<Token> absoluteExpression = new LinkedList<>();
-        int startIndex = index;
-        while(index < sentence.getTokenizedLine().getTokens().size()){
-            absoluteExpression.add(sentence.getTokenizedLine().getTokens().get(index++));
+
+        boolean negative = false;
+        if(sentence.getTokenizedLine().getTokens().get(index).getType() == TokenType.T_MINUS) {
+            negative = true;
+            index++;
         }
-        try {
-            ImmOperand immOperand = new ImmOperand(absoluteExpression);
-            immOperand.setFirstTokenIdx(startIndex);
-            immOperand.setTokensNumber(absoluteExpression.size());
-            sentence.pushOperand(immOperand);
-            return index;
-        } catch(ParserException e) {
-            throw new ParserException(sentence.getTokenizedLine().getLineNumber(), e.getMessage());
+        switch (sentence.getTokenizedLine().getTokens().get(index).getType()) {
+            case T_BIN, T_DEC, T_HEX -> {
+                ImmOperand immOperand = new ImmOperand(UtilTables.immPool.get(sentence.getTokenizedLine().getTokens().get(index).getContent()), negative);
+                immOperand.setFirstTokenIdx(index);
+                immOperand.setTokensNumber(negative ? 2 : 1);
+                sentence.pushOperand(immOperand);
+                index++;
+            }
+            case T_STRING -> {
+                int immValue = 0;
+                String string = sentence.getTokenizedLine().getTokens().get(index).getContent();
+                string = string.replace("" + string.charAt(0), "");
+                if(!string.isEmpty()) {
+                    if(string.length() > 4)
+                        throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Constant value out of range");
+                    for(int i = 0; i < string.length(); i++){
+                        immValue = immValue | string.charAt(i) << (string.length() - i - 1) * 8;
+                    }
+                }
+                ImmOperand operand = new ImmOperand(immValue, negative);
+                operand.setFirstTokenIdx(index);
+                operand.setTokensNumber(negative ? 2 : 1);
+                sentence.pushOperand(operand);
+                index++;
+            }
+            default ->
+                    throw new ParserException(sentence.getTokenizedLine().getLineNumber(), "Only bin, dec, hex, text constanta allowed");
+
         }
+        return index;
     }
 
     private int processMemoryReference(Sentence sentence, int index) throws ParserException {
@@ -360,22 +393,33 @@ public final class Parser {
         return index + 1;
     }
 
-    public Sentence parseLine(TokenizedLine inputLine) throws ParserException {
+    public Sentence parseLine(TokenizedLine inputLine) {
         if(stopParsing) return null;
+        Sentence sentence = new Sentence(inputLine);
 
-        if(inputLine.getTokens().isEmpty()) {
-            return new Sentence(inputLine.getLineNumber());
+        if(sentence.hasErrors()) return sentence;
+
+        if (inputLine.getTokens().isEmpty()) {
+            return sentence;
         }
 
-           return switch (inputLine.getTokens().get(0).getType()) {
-                case T_IDENTIFIER -> this.startingWithIdentifier(new Sentence(inputLine));
+        try {
+            return switch (inputLine.getTokens().get(0).getType()) {
+                case T_IDENTIFIER -> this.startingWithIdentifier(sentence);
 
-                case T_INSTRUCTION -> this.processInstruction(new Sentence(inputLine), 0);
+                case T_INSTRUCTION -> this.processInstruction(sentence, 0);
 
-                case T_DIRECTIVE -> this.processDirective(new Sentence(inputLine), 0);
+                case T_DIRECTIVE -> this.processDirective(sentence, 0);
 
-                default -> throw new ParserException(inputLine.getLineNumber(), "This token is not allowed at the beginning of line: '" + inputLine.getTokens().get(0).getContent() + "'");
+                default ->
+                        throw new ParserException(inputLine.getLineNumber(), "This token is not allowed at the beginning of line: '" + inputLine.getTokens().get(0).getContent() + "'");
 
-           };
+            };
+        }
+        catch(ParserException e) {
+            UtilTables.errors++;
+            sentence.setException(e);
+        }
+        return sentence;
     }
 }
