@@ -17,7 +17,7 @@ public class Main {
             .compile();
 
         //System.out.println(UtilTables.identifiersTable);
-        System.out.println(UtilTables.equReplacements);
+        //System.out.println(UtilTables.equReplacements);
         //System.out.println(UtilTables.immPool);
     }
 }
