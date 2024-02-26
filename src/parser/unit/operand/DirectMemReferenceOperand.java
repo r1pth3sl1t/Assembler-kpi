@@ -8,9 +8,8 @@ public class DirectMemReferenceOperand extends Operand{
         return segmentOverride;
     }
 
-    public DirectMemReferenceOperand setSegmentOverride(String segmentOverride) {
+    public void setSegmentOverride(String segmentOverride) {
         this.segmentOverride = segmentOverride;
-        return this;
     }
 
     private String segmentOverride;
