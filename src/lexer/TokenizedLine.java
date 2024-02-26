@@ -13,6 +13,8 @@ public class TokenizedLine {
 
     private final String initialLine;
 
+    private LexerException exception = null;
+
     public TokenizedLine(List<Token> tokens, String line, int lineNumber){
         this.tokens = tokens;
         this.initialLine = line;
@@ -25,8 +27,10 @@ public class TokenizedLine {
         StringBuilder result = new StringBuilder();
         result.append(this.lineNumber).append(") ").append(initialLine.trim()).append('\n');
         for(int i = 0; i < tokens.size(); i++){
-            String tokenDefinition = String.format("%" + tokens.stream().mapToInt(map -> map.getContent().length()).max().getAsInt() + "s", tokens.get(i).getContent()) + " - " + tokens.get(i).getType().toString();
-            result.append('\t').append(String.format("%2d", (i + 1)).replace(' ', '0')).append(") ").append(tokenDefinition).append("\n");
+            String tokenDefinition = String.format("%" + tokens.stream().mapToInt(map -> map.getContent().length()).max().getAsInt() + "s", tokens.get(i).getContent())
+                    + " - (" + tokens.get(i).getContent().length() + ") " + tokens.get(i).getType().toString();
+            result.append('\t').append(String.format("%2d", (i + 1)).replace(' ', '0'))
+                    .append(") ").append(tokenDefinition).append("\n");
         }
         return result.toString();
     }
@@ -34,4 +38,15 @@ public class TokenizedLine {
     public List<Token> getTokens(){
         return this.tokens;
     }
+
+    public LexerException getException() {
+        return exception;
+    }
+
+    public TokenizedLine setException(LexerException exception) {
+        this.exception = exception;
+        return this;
+    }
+
+
 }
