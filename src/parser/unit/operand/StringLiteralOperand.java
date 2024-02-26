@@ -25,6 +25,6 @@ public class StringLiteralOperand extends Operand{
 
     @Override
     public String toString() {
-        return name;
+        return name + "(" + size +")";
     }
 }
