@@ -135,7 +135,7 @@ public class Lexer {
                             foundEqu = false;
                             break;
                         }
-                        if (!tokensInLine.isEmpty() && tokensInLine.get(tokensInLine.size() - 1).getContent().equals("EQU")) {
+                        if (!tokensInLine.isEmpty() && tokensInLine.get(tokensInLine.size() - 1).content().equals("EQU")) {
                             currentChar = this.getNextChar();
                             while (currentChar != '\0' && currentChar != ';') {
                                 tokenContent.append(currentChar);
@@ -179,6 +179,7 @@ public class Lexer {
         } catch (LexerException e) {
             currentCharIndex = 0;
             UtilTables.errors++;
+            System.err.println(e.getMessage());
             return new TokenizedLine(tokensInLine, line, number).setException(e);
         }
 

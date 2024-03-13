@@ -23,12 +23,12 @@ public class TokenizedLine {
 
     @Override
     public String toString() {
-        if(tokens.isEmpty()) return this.lineNumber + ")";
+        if(tokens.isEmpty()) return this.lineNumber + ") ";
         StringBuilder result = new StringBuilder();
         result.append(this.lineNumber).append(") ").append(initialLine.trim()).append('\n');
         for(int i = 0; i < tokens.size(); i++){
-            String tokenDefinition = String.format("%" + tokens.stream().mapToInt(map -> map.getContent().length()).max().getAsInt() + "s", tokens.get(i).getContent())
-                    + " - (" + tokens.get(i).getContent().length() + ") " + tokens.get(i).getType().toString();
+            String tokenDefinition = String.format("%" + tokens.stream().mapToInt(map -> map.content().length()).max().getAsInt() + "s", tokens.get(i).content())
+                    + " - (" + tokens.get(i).content().length() + ") " + tokens.get(i).type().toString();
             result.append('\t').append(String.format("%2d", (i + 1)).replace(' ', '0'))
                     .append(") ").append(tokenDefinition).append("\n");
         }
@@ -48,5 +48,7 @@ public class TokenizedLine {
         return this;
     }
 
-
+    public String getInitialLine() {
+        return initialLine;
+    }
 }
