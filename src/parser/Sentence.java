@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Sentence {
-    private TokenizedLine tokenizedLine;
+    private final TokenizedLine tokenizedLine;
 
     private Identifier identifier;
 
@@ -19,12 +19,6 @@ public class Sentence {
     private List<Operand> operands;
 
     private ParserException exception = null;
-
-
-    public Sentence(int lineIndex){
-        this.operands = new LinkedList<>();
-        this.tokenizedLine = new TokenizedLine(new LinkedList<>(), "", lineIndex);
-    }
 
     public Sentence(TokenizedLine line){
         this.operands = new LinkedList<>();
@@ -42,16 +36,14 @@ public class Sentence {
 
     @Override
     public String toString(){
-        if(this.tokenizedLine.getTokens().isEmpty()) return this.getTokenizedLine().toString() + "\n<empty>\n";
-
         StringBuilder result = new StringBuilder();
-        if(hasErrors()) {
-            System.err.println(getErrorMessages());
-            result.append(getErrorMessages()).append('\n');
-        }
         result.append(this.tokenizedLine.toString());
+        if(this.tokenizedLine.getTokens().isEmpty())
+            return result.append("\n<empty>\n").toString();
+
+
         if(identifier != null) {
-            result.append("<").append(identifier.getType() == UtilTables.IdentifierType.LABEL ? "label" : "name").append(" (").append(identifier.getFirstTokenIdx()).append(",").append(identifier.getTokensNumber()).append(")> ");
+            result.append("<").append(identifier.getType() == UtilTables.IdentifierType.NEAR ? "label" : "name").append(" (").append(identifier.getFirstTokenIdx()).append(",").append(identifier.getTokensNumber()).append(")> ");
         }
         if(mnemonic != null) result.append("<mnem (").append(mnemonic.getFirstTokenIdx()).append(",").append(mnemonic.getTokensNumber()).append(")> ");
         if(!operands.isEmpty()) {
@@ -87,13 +79,8 @@ public class Sentence {
         this.identifier = identifier;
     }
 
-    public ParserException getException() {
-        return exception;
-    }
-
-    public Sentence setException(ParserException exception) {
+    public void setException(ParserException exception) {
         this.exception = exception;
-        return this;
     }
 
     public boolean hasErrors(){

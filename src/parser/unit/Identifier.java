@@ -5,7 +5,9 @@ import util.UtilTables;
 
 public class Identifier extends SentenceUnit {
 
-    private long offset = -1L;
+    private int offset = -1;
+
+    private String segment;
 
     private UtilTables.IdentifierType type;
 
@@ -21,20 +23,19 @@ public class Identifier extends SentenceUnit {
         this.type = type;
     }
 
-    public long getOffset() {
+    public int getOffset() {
         return offset;
     }
 
-    public void setOffset(long offset) {
+    public void setOffset(int offset) {
         this.offset = offset;
     }
 
-    @Override
-    public String toString() {
-        return "Identifier{" +
-                "type=" + type +
-                ", offset=" + offset +
-                ", name='" + name + '\'' +
-                '}';
+    public String getSegment() {
+        return segment;
+    }
+
+    public void setSegment(String segment) {
+        this.segment = segment;
     }
 }

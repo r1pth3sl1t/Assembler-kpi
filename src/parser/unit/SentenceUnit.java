@@ -12,18 +12,16 @@ public abstract class SentenceUnit {
         return firstTokenIdx;
     }
 
-    public SentenceUnit setFirstTokenIdx(int firstTokenIdx) {
+    public void setFirstTokenIdx(int firstTokenIdx) {
         this.firstTokenIdx = firstTokenIdx + 1;
-        return this;
     }
 
     public int getTokensNumber() {
         return tokensNumber;
     }
 
-    public SentenceUnit setTokensNumber(int tokensNumber) {
+    public void setTokensNumber(int tokensNumber) {
         this.tokensNumber = tokensNumber;
-        return this;
     }
 
     public String getName() {
@@ -34,7 +32,7 @@ public abstract class SentenceUnit {
         this.name = "";
     }
     public SentenceUnit(Token token){
-        this.name = token.getContent();
+        this.name = token.content();
     }
 
 }

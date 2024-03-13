@@ -8,7 +8,7 @@ public class MemReferenceOperand extends Operand{
 
     private int displacement;
 
-    private String segmentOverride;
+    private String segmentOverride = "";
 
     public MemReferenceOperand(){
         super();

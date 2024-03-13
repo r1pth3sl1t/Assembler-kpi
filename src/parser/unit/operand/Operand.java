@@ -5,7 +5,7 @@ import parser.unit.SentenceUnit;
 
 public abstract class Operand extends SentenceUnit {
 
-    protected int size = 32;
+    protected int size = 0;
 
     public int getSize() {
         return size;

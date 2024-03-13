@@ -2,7 +2,6 @@ package parser.unit.operand;
 
 import lexer.Token;
 
-import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,16 +20,6 @@ public class RegisterOperand extends Operand{
         registerSizeMap.put("CH", 8);
         registerSizeMap.put("DH", 8);
 
-        /*
-        registerSizeMap.put("AX", 16);
-        registerSizeMap.put("BX", 16);
-        registerSizeMap.put("CX", 16);
-        registerSizeMap.put("DX", 16);
-        registerSizeMap.put("BP", 16);
-        registerSizeMap.put("SP", 16);
-        registerSizeMap.put("SI", 16);
-        registerSizeMap.put("DI", 16);*/
-
         registerSizeMap.put("EAX", 32);
         registerSizeMap.put("EBX", 32);
         registerSizeMap.put("ECX", 32);
@@ -43,7 +32,7 @@ public class RegisterOperand extends Operand{
 
     public RegisterOperand(Token token) {
         super(token);
-        this.size = getRegisterSize(token.getContent());
+        this.size = getRegisterSize(token.content());
     }
 
     public String toString(){
