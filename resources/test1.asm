@@ -1,47 +1,44 @@
 data SEGMENT 
-var1 dw -65536
+var1 dw 22aeh
 strv db 'Lorem ipsum dolor sit amet'
-bvar: db 111b
-dd 0fffh
+bvar db 10010101b
+dwVr dd 0a184dh
 data ENDS
 
-dfnd equ [esp + ebp - 7]
-thr equ 1665a12h
-df equ
-asf equ 17
+dfnd equ [esp + esi - 7]
+thr equ 1a65e7h
 
 code SEGMENT
-
-vv db 2bh
+vv db 2h
 ddw dd 17124612
 
-start: 
-		and byte ptr cs: [edx + esi + 7], eax
+start:
+		and [edx + edi - 7], eax
 		neg dwVr
 		jb sml
 		and dfnd, ebp
-		xor vv, 12
-
+		xor vv, 10h
+lbl:
 		cmp cl, strv
-		xor fs: byte ptr[eax + esi + 1], 2
+		xor ss:[ebp + ecx + 2], 1a3e5fh
 		jmp sml
-		xor dfnd, asf
-		cmp edi, [eax + ebp - 5]
-		xor dwVr, 'saaa'
+		xor dfnd, 0a141fh
+		cmp edi, [eax + ebp + 2]
+		xor dwVr, 11b
 		cmp ecx, ddw
-	
+
 sml:    bt eax, ebx
 		cmp dl, byte ptr dwVr
-lbl1:  
-		sar eax, 1
+lbl1:
+		sar ebp, 1
 		stosb
-		and es:strv, dh
+		and fs:strv, dh
 		jb sml
 		stosb
 		sar bl, 1
 		cmp dh, byte ptr [edi + esi + 12h]
 		jmp lbl1
 		neg byte ptr [eax + ebx + 2]
-	
-code ENdS
+
+code ENDS
 END

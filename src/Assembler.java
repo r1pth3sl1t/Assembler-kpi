@@ -1,11 +1,8 @@
 
-
+import codegen.Allocator;
 import lexer.Lexer;
-import lexer.LexerException;
-import lexer.Token;
 import lexer.TokenizedLine;
 import parser.Parser;
-import parser.ParserException;
 import parser.Sentence;
 import util.UtilTables;
 
@@ -13,14 +10,13 @@ import java.io.*;
 import java.util.*;
 
 public class Assembler {
-    private Lexer lexer;
-    private Parser parser;
+    private final Lexer lexer;
+    private final Parser parser;
 
     private List<String> lines;
-    private List<Sentence> sentences;
-    private List<TokenizedLine> tokenizedLines;
+    private final List<Sentence> sentences;
 
-    private Map<String, String> options;
+    private final Map<String, String> options;
     private Assembler(String parserOutputFile,
                       String firstRunCompiler,
                       String secondRunCompiler,
@@ -30,7 +26,7 @@ public class Assembler {
         this.options.put("FirstRun", firstRunCompiler);
         this.options.put("SecondRun", secondRunCompiler);
         this.sentences = new LinkedList<>();
-        this.tokenizedLines = new LinkedList<>();
+
         try(BufferedReader reader = new BufferedReader(new FileReader(sourceFilePath))){
             String line;
             this.lines = new LinkedList<>();
@@ -45,26 +41,35 @@ public class Assembler {
 
     public void compile(){
         int lineNum = 1;
-        int errorCnt = 0;
+        long timeStart = Calendar.getInstance().getTimeInMillis();
         for(String line : lines){
             TokenizedLine tokenizedLine = lexer.tokenizeString(line, lineNum++);
-            tokenizedLines.add(tokenizedLine);
-            sentences.add(parser.parseLine(tokenizedLine));
+            Sentence sentence = parser.parseLine(tokenizedLine);
+            if(sentence != null) sentences.add(sentence);
         }
 
-        List<String> lexemesTable = tokenizedLines.stream().map(TokenizedLine::toString).toList();
+        Allocator allocator = new Allocator(sentences);
+        allocator.allocate();
+        long timeStop = Calendar.getInstance().getTimeInMillis();
         if(this.options.get("Parser") != null) {
-            try (PrintWriter writer = new PrintWriter(new File(this.options.get("Parser")))) {
-                for (int i = 0; i < sentences.size(); i++ ) {
-                    writer.println(sentences.get(i).toString());
+            try (PrintWriter writer = new PrintWriter(this.options.get("Parser"))) {
+                for (Sentence sentence : sentences) {
+                    writer.println(sentence.toString());
                 }
-                System.out.println("Errors found: " + UtilTables.errors);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
         }
 
-
+        if(this.options.get("FirstRun") != null) {
+            try (PrintWriter writer = new PrintWriter(this.options.get("FirstRun"))) {
+                allocator.firstRunListing(writer);
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        System.out.println("Errors found: " + UtilTables.errors);
+        System.out.println("Time of compilation: " + (timeStop - timeStart) / 1000.0 + "s");
     }
 
     public static AssemblerBuilder builder() {
