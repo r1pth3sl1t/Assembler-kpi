@@ -235,9 +235,12 @@ public final class Parser {
                 if(startOpIndex == tokens.size()) return sentence;
                 if(tokens.get(startOpIndex).type() == TokenType.T_COMMA) {
                     startOpIndex++;
+                    if(startOpIndex == tokens.size())
+                        throw new ParserException("Comma cannot be last token in operands list");
                 }
                 else throw new ParserException("Unexpected token: '" + tokens.get(startOpIndex).content() +"'");
             }
+
         }
         return sentence;
     }
