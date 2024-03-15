@@ -1,4 +1,4 @@
-data SEGMENT 
+data SEGMENT
 var1 dw 22aeh
 strv db 'Lorem ipsum dolor sit amet'
 bvar db 10010101b
@@ -20,15 +20,16 @@ start:
 		xor vv, 10h
 lbl:
 		cmp cl, strv
-		xor ss:[ebp + ecx + 2], 1a3e5fh
+		xor [ebp + ecx + 2], 1a3e5fh
 		jmp sml
-		xor dfnd, 0a141fh
+		xor ss:dfnd, 0a141fh
 		cmp edi, [eax + ebp + 2]
-		xor dwVr, 11b
+		xor gs:dwVr, 11b
 		cmp ecx, ddw
 
 sml:    bt eax, ebx
 		cmp dl, byte ptr dwVr
+		db '0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 lbl1:
 		sar ebp, 1
 		stosb

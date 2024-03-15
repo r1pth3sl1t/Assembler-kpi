@@ -60,4 +60,5 @@ public class JumpEncoder {
 
         return line;
     }
+
 }

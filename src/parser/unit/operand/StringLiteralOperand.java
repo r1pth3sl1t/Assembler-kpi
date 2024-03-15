@@ -17,6 +17,7 @@ public class StringLiteralOperand extends Operand{
     @Override
     public String toString() {
         StringBuilder hex = new StringBuilder();
+
         for(byte b : stringAsByteArray) {
             hex.append(Integer.toHexString(b)).append(" ");
         }

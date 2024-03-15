@@ -130,38 +130,38 @@
 	04) STRV - (4) T_IDENTIFIER
 <mnem (1,1)> <op (2,1)>, <op (4,1)>
 
-23) xor ss:[ebp + ecx + 2], 1a3e5fh
+23) xor [ebp + ecx + 2], 1a3e5fh
 	01)     XOR - (3) T_INSTRUCTION
-	02)      SS - (2) T_SEGMENT_REG
-	03)       : - (1) T_COLON
-	04)       [ - (1) T_OPEN_BRACKET
-	05)     EBP - (3) T_GENERAL_REG32
+	02)       [ - (1) T_OPEN_BRACKET
+	03)     EBP - (3) T_GENERAL_REG32
+	04)       + - (1) T_PLUS
+	05)     ECX - (3) T_GENERAL_REG32
 	06)       + - (1) T_PLUS
-	07)     ECX - (3) T_GENERAL_REG32
-	08)       + - (1) T_PLUS
-	09)       2 - (1) T_DEC
-	10)       ] - (1) T_CLOSE_BRACKET
-	11)       , - (1) T_COMMA
-	12) 1A3E5FH - (7) T_HEX
-<mnem (1,1)> <op (2,9)>, <op (12,1)>
+	07)       2 - (1) T_DEC
+	08)       ] - (1) T_CLOSE_BRACKET
+	09)       , - (1) T_COMMA
+	10) 1A3E5FH - (7) T_HEX
+<mnem (1,1)> <op (2,7)>, <op (10,1)>
 
 24) jmp sml
 	01) JMP - (3) T_INSTRUCTION
 	02) SML - (3) T_IDENTIFIER
 <mnem (1,1)> <op (2,1)>
 
-25) xor dfnd, 0a141fh
+25) xor ss:dfnd, 0a141fh
 	01)     XOR - (3) T_INSTRUCTION
-	02)       [ - (1) T_OPEN_BRACKET
-	03)     ESP - (3) T_GENERAL_REG32
-	04)       + - (1) T_PLUS
-	05)     ESI - (3) T_GENERAL_REG32
-	06)       - - (1) T_MINUS
-	07)       7 - (1) T_DEC
-	08)       ] - (1) T_CLOSE_BRACKET
-	09)       , - (1) T_COMMA
-	10) 0A141FH - (7) T_HEX
-<mnem (1,1)> <op (2,7)>, <op (10,1)>
+	02)      SS - (2) T_SEGMENT_REG
+	03)       : - (1) T_COLON
+	04)       [ - (1) T_OPEN_BRACKET
+	05)     ESP - (3) T_GENERAL_REG32
+	06)       + - (1) T_PLUS
+	07)     ESI - (3) T_GENERAL_REG32
+	08)       - - (1) T_MINUS
+	09)       7 - (1) T_DEC
+	10)       ] - (1) T_CLOSE_BRACKET
+	11)       , - (1) T_COMMA
+	12) 0A141FH - (7) T_HEX
+<mnem (1,1)> <op (2,9)>, <op (12,1)>
 
 26) cmp edi, [eax + ebp + 2]
 	01) CMP - (3) T_INSTRUCTION
@@ -176,12 +176,14 @@
 	10)   ] - (1) T_CLOSE_BRACKET
 <mnem (1,1)> <op (2,1)>, <op (4,7)>
 
-27) xor dwVr, 11b
+27) xor gs:dwVr, 11b
 	01)  XOR - (3) T_INSTRUCTION
-	02) DWVR - (4) T_IDENTIFIER
-	03)    , - (1) T_COMMA
-	04)  11B - (3) T_BIN
-<mnem (1,1)> <op (2,1)>, <op (4,1)>
+	02)   GS - (2) T_SEGMENT_REG
+	03)    : - (1) T_COLON
+	04) DWVR - (4) T_IDENTIFIER
+	05)    , - (1) T_COMMA
+	06)  11B - (3) T_BIN
+<mnem (1,1)> <op (2,3)>, <op (6,1)>
 
 28) cmp ecx, ddw
 	01) CMP - (3) T_INSTRUCTION
@@ -211,23 +213,28 @@
 	06) DWVR - (4) T_IDENTIFIER
 <mnem (1,1)> <op (2,1)>, <op (4,3)>
 
-32) lbl1:
+32) db '0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+	01)                                                                                                                             DB - (2) T_DIRECTIVE
+	02) '0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' - (126) T_STRING
+<mnem (1,1)> <op (2,1)>
+
+33) lbl1:
 	01) LBL1 - (4) T_IDENTIFIER
 	02)    : - (1) T_COLON
 <label (1,2)> 
 
-33) sar ebp, 1
+34) sar ebp, 1
 	01) SAR - (3) T_INSTRUCTION
 	02) EBP - (3) T_GENERAL_REG32
 	03)   , - (1) T_COMMA
 	04)   1 - (1) T_DEC
 <mnem (1,1)> <op (2,1)>, <op (4,1)>
 
-34) stosb
+35) stosb
 	01) STOSB - (5) T_INSTRUCTION
 <mnem (1,1)> 
 
-35) and fs:strv, dh
+36) and fs:strv, dh
 	01)  AND - (3) T_INSTRUCTION
 	02)   FS - (2) T_SEGMENT_REG
 	03)    : - (1) T_COLON
@@ -236,23 +243,23 @@
 	06)   DH - (2) T_GENERAL_REG08
 <mnem (1,1)> <op (2,3)>, <op (6,1)>
 
-36) jb sml
+37) jb sml
 	01)  JB - (2) T_INSTRUCTION
 	02) SML - (3) T_IDENTIFIER
 <mnem (1,1)> <op (2,1)>
 
-37) stosb
+38) stosb
 	01) STOSB - (5) T_INSTRUCTION
 <mnem (1,1)> 
 
-38) sar bl, 1
+39) sar bl, 1
 	01) SAR - (3) T_INSTRUCTION
 	02)  BL - (2) T_GENERAL_REG08
 	03)   , - (1) T_COMMA
 	04)   1 - (1) T_DEC
 <mnem (1,1)> <op (2,1)>, <op (4,1)>
 
-39) cmp dh, byte ptr [edi + esi + 12h]
+40) cmp dh, byte ptr [edi + esi + 12h]
 	01)  CMP - (3) T_INSTRUCTION
 	02)   DH - (2) T_GENERAL_REG08
 	03)    , - (1) T_COMMA
@@ -267,12 +274,12 @@
 	12)    ] - (1) T_CLOSE_BRACKET
 <mnem (1,1)> <op (2,1)>, <op (4,9)>
 
-40) jmp lbl1
+41) jmp lbl1
 	01)  JMP - (3) T_INSTRUCTION
 	02) LBL1 - (4) T_IDENTIFIER
 <mnem (1,1)> <op (2,1)>
 
-41) neg byte ptr [eax + ebx + 2]
+42) neg byte ptr [eax + ebx + 2]
 	01)  NEG - (3) T_INSTRUCTION
 	02) BYTE - (4) T_TYPE
 	03)  PTR - (3) T_PTR
@@ -285,15 +292,15 @@
 	10)    ] - (1) T_CLOSE_BRACKET
 <mnem (1,1)> <op (2,9)>
 
-42) 
+43) 
 <empty>
 
-43) code ENDS
+44) code ENDS
 	01) CODE - (4) T_IDENTIFIER
 	02) ENDS - (4) T_DIRECTIVE
 <name (1,1)> <mnem (2,1)> 
 
-44) END
+45) END
 	01) END - (3) T_DIRECTIVE
 <mnem (1,1)> 
 

@@ -29,6 +29,10 @@ public class ListingLine {
         this.offset = offset;
     }
 
+    public int getOffset() { return offset; }
+
+    public Sentence getSentence() { return sentence; }
+
 
     public void setHexCode(String hexCode) {
         this.hexCode = hexCode;
